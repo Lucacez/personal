@@ -59,11 +59,6 @@ const Container = ({ children }) => {
                             Home
                         </Button>
                     </NextLink>
-                    <NextLink href="/blog" passHref>
-                        <Button as="a" variant="ghost" p={[1, 2, 4]} _hover={{ backgroundColor: navHoverBg[colorMode] }}>
-                            Blog
-                        </Button>
-                    </NextLink>
                 </Box>
                 <DarkModeSwitch />
             </StickyNav >
