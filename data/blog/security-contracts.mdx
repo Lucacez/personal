@@ -1,0 +1,282 @@
+---
+title: 'Optimize Smart Contracts Solidity'
+publishedAt: '2022-06-29'
+summary: 'This is the summary of our blog post! This is the summary of our blog post! This is the summary of our blog post!'
+---
+
+
+Gas optimization is a matter of doing what is cheap and avoiding what is expensive in terms of gas costs on EVM blockchains.
+
+If you can rewrite or organize your code so you are doing more what is cheap and less what is expensive then you are saving gas and that’s a gas optimization.
+
+## What's cheap?
+  - Read constants and immutable variables.
+  - Reading and writing local variables.
+  - Reading and writing memory variables like memory arrays and structs.
+  - Reading calldata variables like calldata arrays and structs.
+  - Internal function calls.
+
+## What's expensive?
+  - Read and writing state variables that are stored in contract storage.
+  - External function calls.
+  - Loops.
+
+## Appropriate data types.
+In Solidity, some data types are more expensive than others. It is important to be aware of the most efficient type to use.
+
+1. The ```uint``` type should be used instead of the ```string``` type whenever possible.
+
+2. Type ```uint256``` requires less gasoline to store than ```uint8```.
+
+3. The ```bytes``` type must be used over ```byte[]```.
+
+4. It is better to use ```uint256``` and ```bytes32``` than to use ```uint8```.
+
+5. If the byte length can be limited, use as few as possible from ```bytes1``` to ```bytes32```.
+
+6. The ```bytes32``` type is cheaper to use than the ```string``` type.
+
+It is better to use ```uint256``` and ```bytes32``` than using ```uint8``` for example. While it seems like uint8 will consume less gas than ```uint256``` it is not true, since the Ethereum virtual Machine(EVM) will still occupy 256 bits, fill 8 bits with the uint variable and fill the extra bites with zeros. In order to verify the following contract was deployed.
+
+```dart:example.sol
+pragma solidity ^0.8.1;
+contract SaveGas {
+    
+    uint8 resulta = 0;
+    uint resultb = 0;
+    
+    function UseUint() external returns (uint) {
+        uint selectedRange = 50;
+        for (uint i=0; i < selectedRange; i++) {
+            resultb += 1;
+        }
+        return resultb;
+    }
+    
+    function UseUInt8() external returns (uint8){
+        uint8 selectedRange = 50;
+        for (uint8 i=0; i < selectedRange; i++) {
+            resulta += 1;
+        }
+        return resulta;
+    }
+}
+```
+
+To verify this, deploy this contract in remix and compare the cost of executing both functions.  
+
+
+## State variables that can be set to immutable.
+
+Solidity 0.6.5 introduced ```immutable``` as a major feature. It allows setting contract-level variables at construction time which gets stored in code rather than storage.
+Consider the following generic example:
+
+```dart:example.sol
+contract C {
+    /// The owner is set during contruction time, and never changed afterwards.
+    address public owner = msg.sender;
+}
+```
+
+In the above example, each call to the function ```owner()``` reads from storage, using a ```sload```. After EIP-2929, this costs 2100 gas cold or 100 gas warm. However, the following snippet is more gas efficient:
+
+```dart:example.sol
+contract C {
+    /// The owner is set during contruction time, and never changed afterwards.
+    address public immutable owner = msg.sender;
+}
+```
+
+In the above example, each storage read of the ```owner``` state variable is replaced by the instruction ```push32 value```, where ```value``` is set during contract construction time. Unlike the last example, this costs only 3 gas.
+
+## Short circuit.
+
+Short-circuiting is a strategy we can make use of when an operation makes use of either ```||``` or ```&&```. This pattern works by ordering the lower-cost operation first so that the higher-cost operation may be skipped (short-circuited) if the first operation evaluates to true.
+
+```dart:example.sol
+// f(x) is low const
+// g(y) is expensive
+
+// Ordering should go as follows
+f(x) || g(y)
+f(x) && g(y)
+```
+## Swap between variables.
+This is one of the most efficient solutions to exchange two variables.
+```dart:example.sol
+uint a = 1;
+uint b = 2;
+
+(a, b) = (b, a);
+```
+## Short Revert Strings.
+
+Keeping revert strings under 32-bytes prevents the string from being stored in more than one memory slot.
+```dart:example.sol
+function expensiveRevertStrings() {
+  require(a < b; "long revert string over 32 bytes");
+}
+```
+Alternatively you can write comments to map short strings to longer ones in your contract, e.g.:
+```dart:example.sol
+// a: long revert string over 32 bytes
+function cheapRevertStrings() {
+  require(a < b; "a");
+}
+```
+Ideally, if you are using solidity >= 0.8.4, it is even better to use custom errors to further save on gas.
+```dart:example.sol
+error CustomError();
+contract CustomErrors {
+  if (a < b) {
+    revert CustomError();
+  }
+}
+```
+## Optimal Comparison Operator.
+
+When comparing ```uint```, you can save gas costs by strategically picking the optimal operator.
+
+For example, it is cheaper to use strict ```<``` or ```>``` operators over ```<=``` or ```>=``` operators. This is due to the additional EQ opcode which must be performed.
+
+In the case of a conditional statement, it is further optimal to use ```!=``` when possible.
+
+```dart:example.sol
+// 149 gas
+function a() external pure returns(bool) {
+  return 1 > 0;
+}
+
+// 193 gas
+function b() external pure returns(bool) {
+  return 1 >= 0;
+}
+
+// 237 gas
+function c() external pure returns(bool) {
+  return 1 != 0;
+}
+
+// 164 gas
+function d() external pure {
+  require(1 > 0);
+}
+
+// 208 gas
+function e() external pure {
+  require(1 >= 0);
+}
+
+// 120 gas
+function f() external pure {
+  require(1 != 0);
+}
+```
+## Unchecked Arithmetic
+In Solidity version 0.8.0 and above, a series of opcodes are added before adding, diving, and multiplying to check for underflow and overflow.
+
+Put code in an ```unchecked``` block when it is impossible for the arithmetics to underflow or overflow.
+
+Warning: Using ```unchecked``` with code that would otherwise underflow or overflow will result in the wrapping behavior. Use with caution.
+
+```dart:example.sol
+uint zeroToTen;
+
+// Unoptimized
+while (zeroToTen < 10) {
+    ++zeroToTen;
+}
+
+// Optimized
+while (zeroToTen < 10) {
+    unchecked {
+        ++zeroToTen;
+    }
+}
+```
+Another example:
+```dart:example.sol
+// Unoptimized
+for (uint i = 0; i < length; i++) {
+    // do something that doesn't change the value of i
+}
+
+// Optimized
+for (uint i = 0; i < length; i = unchecked_inc(i)) {
+    // do something that doesn't change the value of i
+}
+
+function unchecked_inc(uint i) returns (uint) {
+    unchecked {
+        return i + 1;
+    }
+}
+```
+## Payable Functions.
+Making functions ```payable``` eliminates the need for an initial check of ```msg.value == 0``` and saves 21 gas.
+
+Note: This conservatively assumes the function could be ```pure``` if not for the ```payable```. When compared against a non-```pure``` function the savings is 24 gas. When used with a constructor, the savings is on deployment.
+
+Warning: Adding a ```payable``` function where none existed previously could introduce a security risk. Use with caution.
+
+```dart:example.sol
+//  Unoptimized
+function doSomething() public {}
+
+//  Optimized 
+function doSomething() payable public {}
+```
+
+## Use ```calldata``` instead of ```memory``` for function parameters.
+In some cases, having function arguments in ```calldata``` instead of ```memory``` is more optimal.
+
+Consider the following generic example:
+```dart:example.sol
+contract C {
+    function add(uint[] memory arr) external returns (uint sum) {
+        uint length = arr.length;
+        for (uint i = 0; i < arr.length; i++) {
+            sum += arr[i];
+        }
+    }
+}
+```
+In the above example, the dynamic array ```arr``` has the storage location ```memory```. When the function gets called externally, the array values are kept in ```calldata``` and copied to ```memory``` during ABI decoding (using the opcode ```calldataload``` and ```mstore```). And during the for loop, ```arr[i]``` accesses the value in memory using a ```mload```. However, for the above example this is inefficient. Consider the following snippet instead:
+
+```dart:example.sol
+contract C {
+    function add(uint[] calldata arr) external returns (uint sum) {
+        uint length = arr.length;
+        for (uint i = 0; i < arr.length; i++) {
+            sum += arr[i];
+        }
+    }
+}
+```
+In the above snippet, instead of going via memory, the value is directly read from ```calldata``` using ```calldataload```. That is, there are no intermediate memory operations that carries this value.
+
+Gas savings: In the former example, the ABI decoding begins with copying value from ```calldata``` to ```memory``` in a for loop. Each iteration would cost at least 60 gas. In the latter example, this can be completely avoided. This will also reduce the number of instructions and therefore reduces the deploy time cost of the contract.
+
+In short, use ```calldata``` instead of ```memory``` if the function argument is only read.
+
+Note that in older Solidity versions, changing some function arguments from ```memory``` to ```calldata``` may cause “unimplemented feature error”. This can be avoided by using a newer (```0.8.*```) Solidity compiler.
+
+## Function Ordering.
+When a function is called, the EVM compares the method ID of the transaction to the method ID's present in the contract, with each comparison costing an additional 22 gas. These comparisons are performed in order from least to greatest byte value of method ID's.
+
+For this reason, there is some value in renaming functions to be ordered based on the frequency you expect them to be used, saving average overall gas cost of interacting with your contract.
+```dart:example.sol
+// method ID: 0x1249c58b
+mint()
+
+// method ID: 0x0000b696
+mint_Aci()
+```
+Useful tool: https://emn178.github.io/solidity-optimize-name/
+
+## Unnecessary libraries. 
+Libraries are sometimes only imported for a small number of uses, which means that they may contain a significant amount of code that is redundant to your contract.
+
+
+
+

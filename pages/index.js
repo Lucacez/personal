@@ -28,7 +28,7 @@ export default function Blog({ posts }) {
     return (
         <>
             <Head>
-                <title>Blog - Benjamin Carlson</title>
+                <title>Home - Luca Cespedes</title>
             </Head>
             <Container>
                 <Stack
@@ -47,9 +47,9 @@ export default function Blog({ posts }) {
                         px={4}
                     >
                         <Heading letterSpacing="tight" mb={4} as="h1" size="2xl">
-                          Luca Cespedes's website
+                          Luca Cespedes' blog
                         </Heading>
-                        <InputGroup mb={4} mr={4} w="100%">
+                        <InputGroup mb={4} mr={4} w="100%" marginBottom="40px">
                             <Input
                                 aria-label="Search by title"
                                 placeholder="Search by title"

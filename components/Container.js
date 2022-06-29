@@ -52,11 +52,18 @@ const Container = ({ children }) => {
                 mt={8}
                 mb={[0, 0, 8]}
                 mx="auto"
+                borderBottom="1px solid"
+                borderBottomColor={navHoverBg[colorMode]}
             >
                 <Box>
                     <NextLink href="/" passHref>
-                        <Button as="a" variant="ghost" p={[1, 2, 4]} _hover={{ backgroundColor: navHoverBg[colorMode] }}>
+                        <Button as="a" variant="link" p={[1, 2, 4]} color={navHoverBg[colorMode]}>
                             Home
+                        </Button>
+                    </NextLink>
+                    <NextLink href="/info" passHref>
+                        <Button as="a" variant="link" p={[1, 2, 4]} color={navHoverBg[colorMode]}>
+                            Info
                         </Button>
                     </NextLink>
                 </Box>

@@ -157,7 +157,10 @@ export const prismLightTheme = css`
 
 export const prismDarkTheme = css`
     ${prismBaseTheme};
-    :not(pre) > code[class*='language-'] {
+  *{
+    color-scheme: dark;
+  }
+  :not(pre) > code[class*='language-'] {
     background: #011627;
   }
   .token.attr-name {

@@ -6,8 +6,7 @@ import {
     Heading,
     Text,
     Flex,
-    Stack,
-    Avatar
+    Stack
 } from '@chakra-ui/react'
 import { useRouter } from 'next/router'
 
@@ -24,7 +23,7 @@ export default function BlogLayout({ children, frontMatter }) {
     return (
         <Container>
             <Head>
-                <title>${slug} - Blog - Benjamin Carlson</title>
+                <title>${slug} - Blog - Luca Cespedes</title>
             </Head>
             <Stack
                 as="article"
