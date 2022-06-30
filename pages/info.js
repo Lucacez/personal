@@ -38,9 +38,9 @@ export default function Info() {
         >
           <Heading mb={2}>Hi, I'm Luca Cespedes</Heading>
           <Text color={colorSecondary[colorMode]}>I am a Smart Contract developer and blockchain enthusiast.<br />
-            In this blog I will be uploading posts about all this, not only to share it with you, but to help me to have a place to come to when I forget some things 😁.
+            In this blog I will be uploading posts about all this, not only to share it with you, also to help me to have a place to go to when I forget some things 😁.
             <br />
-            All comments on the posts are welcome, and in fact if you find any mistakes, I would appreciate if you mention them to correct them. </Text>
+            All comments on the posts are welcome, and in fact if you find any mistakes, I would appreciate if you mention them to correct them.(not added yet) </Text>
           
         </Flex>
       </Stack>
