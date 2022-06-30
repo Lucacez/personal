@@ -30,7 +30,7 @@ const CustomLink = (props) => {
         )
     }
 
-    return <Link color={color[colorMode]} isExternal {...props} />
+    return <Link color={color[colorMode]} {...props} />
 }
 
 const Quote = (props) => {
