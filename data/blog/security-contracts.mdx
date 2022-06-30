@@ -9,6 +9,10 @@ Gas optimization is a matter of doing what is cheap and avoiding what is expensi
 
 If you can rewrite or organize your code so you are doing more what is cheap and less what is expensive then you are saving gas and that’s a gas optimization.
 
+## Outline
+
+- [What's cheap?](##What's-cheap)
+
 ## What's cheap?
   - Read constants and immutable variables.
   - Reading and writing local variables.
@@ -274,8 +278,65 @@ mint_Aci()
 ```
 Useful tool: https://emn178.github.io/solidity-optimize-name/
 
-## Unnecessary libraries. 
-Libraries are sometimes only imported for a small number of uses, which means that they may contain a significant amount of code that is redundant to your contract.
+## Access data from memory and not from storage.
+
+In our example the contract stores 2 variable on its storage, ```resulta``` and ```resultb```. While this is ok, both the ```UseUint``` and ```UseUint8``` functions loop 50 times over the result variable, accessing it from the ```storage``` every single time. Because accessing the ```memory``` is cheaper and faster, before going through the loop, the ```storage``` variables can be stored in ```memory```. So reulta will be ```resultaMem``` and ```resultb``` will be ```resultbMem```, like shown below.
+
+```dart:example.sol
+pragma solidity ^0.8.1;
+contract SaveGas {
+    
+    uint8 resulta = 0;
+    uint resultb = 0;
+    
+    function UseUint() external returns (uint) {
+        uint selectedRange = 50;
+        uint resultbMem = resultb;
+        for (uint i=0; i < selectedRange; i++) {
+            resultbMem += 1;
+        }
+        return resultbMem;
+    }
+    
+    function UseUInt8() external returns (uint8){
+        uint8 selectedRange = 50;
+        uint8 resultaMem = resulta;
+        for (uint8 i=0; i < selectedRange; i++) {
+            resultaMem += 1;
+        }
+        return resultaMem;
+    }
+}
+```
+
+## Packing Structs.
+
+A common gas optimization is “packing structs” or “packing storage slots”. This is the action of using smaller types like ```uint128``` and ```uint96``` next to each other in contract storage. When values are read or written in contract storage a full 256 bits are read or written. So if you can pack multiple variables within one 256 bit storage slot then you are cutting the cost to read or write those storage variables in half or more.
+
+Packing structs is a way to reduce contract storage reads and writes. Because with it you can get the values of multiple state variables or write the values of multiple state values in a single state read or state write to contract storage.
+
+Here is an example of an unoptimized struct:
+
+```dart:example.sol
+struct MyStruct {
+  uint256 myTime;
+  address myAddress;
+}
+```
+
+Example of an optimized struct:
+
+```dart:example.sol
+struct MyStruct {
+  uint96 myTime;
+  address myAddress;
+}
+```
+
+In the above a myTime and myAddress state variables take up 256 bits so both values can be read or written in a single state read or write.
+
+
+
 
 
 
