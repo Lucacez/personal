@@ -12,7 +12,23 @@ If you can rewrite or organize your code so you are doing more what is cheap and
 ## Outline
 
 - [What's cheap?](https://www.lucacez.com/blog/optimizations-contracts#whats-cheap)
+- [What's expensive?](https://www.lucacez.com/blog/optimizations-contracts#whats-expensive)
+- [Appropriate data types](https://www.lucacez.com/blog/optimizations-contracts#appropriate-data-types)
+- [State variables that can be set to immutable](https://www.lucacez.com/blog/optimizations-contracts#state-variables-that-can-be-set-to-immutable)
+- [Short circuit](https://www.lucacez.com/blog/optimizations-contracts#short-circuit)
+- [Swap between variables](https://www.lucacez.com/blog/optimizations-contracts#swap-between-variables)
+- [Short Revert Strings](https://www.lucacez.com/blog/optimizations-contracts#short-revert-strings)
+- [Optimal Comparison Operator](https://www.lucacez.com/blog/optimizations-contracts#optimal-comparison-operator)
+- [Unchecked Arithmetic](https://www.lucacez.com/blog/optimizations-contracts#unchecked-arithmetic)
+- [Payable Functions](https://www.lucacez.com/blog/optimizations-contracts#payable-functions)
+- [Use calldata instead of memory for function parameters](https://www.lucacez.com/blog/optimizations-contracts#use-calldata-instead-of-memory-for-function-parameters)
+- [Function Ordering](https://www.lucacez.com/blog/optimizations-contracts#function-ordering)
+- [Access data from memory and not from storage](https://www.lucacez.com/blog/optimizations-contracts#access-data-from-memory-and-not-from-storage)
+- [Packing Structs](https://www.lucacez.com/blog/optimizations-contracts#packing-structs)
 
+
+
+Use ```calldata``` instead of ```memory``` for function parameters
 ## What's cheap?
   - Read constants and immutable variables.
   - Reading and writing local variables.
